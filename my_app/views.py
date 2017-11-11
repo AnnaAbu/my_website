@@ -44,12 +44,12 @@ def homepage(request):
 
 def getlist(request):
 	if request.method == 'GET':
-		getpager= request.GET.get('page',1)
+		getpage= request.GET.get('page',1)
 		getcategory=request.GET.get('category')
 		getnum=request.GET.get('num',3)
 		#return JsonResponse({'status': '1', 'msg': 'invalid type'})
 	elif request.method == 'POST':
-		getpager = request.POST.get('page', 1)		
+		getpage = request.POST.get('page', 1)		
 		getcategory = request.POST.get('category')
 		getnum=request.POST.get('num',3)
 	#getcategory=getcategory.strip()
@@ -59,37 +59,42 @@ def getlist(request):
 		return JsonResponse({'status':'1','msg':'invalid type'})
 	#page_articlenum = 15
 	try:
-		getpager=int(getpager)
+		getpage=int(getpage)
 		getnum=int(getnum)
+		getcategory=eval(getcategory)
 	except ValueError:
 		return JsonResponse({'status': '1', 'msg': 'page or num is not an Integer'})
-
+	except SyntaxError:
+		return JsonResponse({'status':'1','msg':'invalid category'})
+	except NameError:
+		return JsonResponse({'status':'1','msg':'invalid category'})
 	mydict={}
+
 	for l in getcategory:
 		if Article.objects.filter(category=l).count()==0:
-			return JsonResponse({'status':'0','msg':'invalid category'})
+			return JsonResponse({'status':'1','msg':'invalid category'})
 		backlist=[]
-		if (getpager - 1) * getnum >= Article.objects.filter(category=l).count():
+		if (getpage - 1) * getnum > Article.objects.filter(category=l).count():
 			return JsonResponse({'status': '1', 'msg': 'invalid page or num'})
-		elif getpager*getnum<Article.objects.filter(category=l).count():
-			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[(getpager-1)*getnum:getnum]
+		elif getpage*getnum<Article.objects.filter(category=l).count():
+			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[(getpage-1)*getnum:getnum]
 		else:
 			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[
-				   (getpager-1)*getnum:Article.objects.filter(category=l).count()-(getpager-1)*getnum]
+				   (getpage-1)*getnum:Article.objects.filter(category=l).count()-(getpage-1)*getnum]
 		mydict[l]=queryset_to_dictlist(mylist,['category','id','title','timestamp'])
 
-	#elif getpager * getnum < Article.objects.count():
+	#elif getpage * getnum < Article.objects.count():
 
 		'''
 		if getcategory=='all':
-			mylist = Article.objects.all().order_by('-id').values_list('id','title','timestamp')[(getpager-1)*page_articlenum:page_articlenum]
+			mylist = Article.objects.all().order_by('-id').values_list('id','title','timestamp')[(getpage-1)*page_articlenum:page_articlenum]
 		else:
-			mylist = Article.objects.filter(category=getcategory).order_by('-id').values_list('id', 'title', 'timestamp')[(getpager-1)*page_articlenum:page_articlenum]
+			mylist = Article.objects.filter(category=getcategory).order_by('-id').values_list('id', 'title', 'timestamp')[(getpage-1)*page_articlenum:page_articlenum]
 	else:
 		if getcategory=='all':
-			mylist = Article.objects.all().order_by('-id').values_list('id', 'title', 'timestamp')[(getpager - 1) * page_articlenum:Article.objects.count()-(getpager-1)*page_articlenum]
+			mylist = Article.objects.all().order_by('-id').values_list('id', 'title', 'timestamp')[(getpage - 1) * page_articlenum:Article.objects.count()-(getpage-1)*page_articlenum]
 		else:
-			mylist = Article.objects.filter(category=getcategory).order_by('-id').values_list('id', 'title','timestamp')[(getpager - 1) * page_articlenum:Article.objects.count() - (getpager - 1) * page_articlenum]
+			mylist = Article.objects.filter(category=getcategory).order_by('-id').values_list('id', 'title','timestamp')[(getpage - 1) * page_articlenum:Article.objects.count() - (getpage - 1) * page_articlenum]
 		
 	mydict={}
 

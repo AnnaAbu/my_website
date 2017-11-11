@@ -37,22 +37,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'corsheaders',
-	'my_app',
-	]
+    'corsheaders',
+    'my_app',
+    ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-   # 'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'my_website.urls'
+CORS_ORIGIN_ALLOW_ALL=True
 
 TEMPLATES = [
     {
@@ -77,8 +79,8 @@ WSGI_APPLICATION = 'my_website.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-	'default': {
-		'ENGINE': 'django.db.backends.mysql',
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'website',
         'USER':'root',
         'PASSWORD':'13313288898lzt',

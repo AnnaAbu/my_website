@@ -55,7 +55,7 @@ def getlist(request):
 	#getcategory=getcategory.strip()
 	if getcategory==None:
 		return JsonResponse({'status': '1', 'msg': 'not found category'})
-	if isinstance(getcategory,[]):
+	if isinstance(getcategory,list):
 		return JsonResponse({'status':'1','msg':'invalid type'})
 	#page_articlenum = 15
 	try:
@@ -70,9 +70,9 @@ def getlist(request):
 		if (getpager - 1) * getnum > Article.objects.filter(category=l).count():
 			return JsonResponse({'status': '1', 'msg': 'invalid page or num'})
 		elif getpager*getnum<Article.objects.filter(category=l).count():
-			mylist=Article.objects.filter(category=l).values_list('category','id','title','timestamp')[(getpager-1)*getnum:getnum]
+			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[(getpager-1)*getnum:getnum]
 		else:
-			mylist=Article.objects.filter(category=l).values_list('category','id','title','timestamp')[
+			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[
 				   (getpager-1)*getnum:Article.objects.filter(category=l).count()-(getpager-1)*getnum]
 		mydict[l]=queryset_to_dictlist(mylist,['category','id','title','timestamp'])
 

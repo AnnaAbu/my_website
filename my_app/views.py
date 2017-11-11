@@ -66,8 +66,10 @@ def getlist(request):
 
 	mydict={}
 	for l in getcategory:
+		if Article.objects.filter(category=l).count()==0:
+			return JsonResponse({'status':'0','msg':'invalid category'})
 		backlist=[]
-		if (getpager - 1) * getnum > Article.objects.filter(category=l).count():
+		if (getpager - 1) * getnum >= Article.objects.filter(category=l).count():
 			return JsonResponse({'status': '1', 'msg': 'invalid page or num'})
 		elif getpager*getnum<Article.objects.filter(category=l).count():
 			mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[(getpager-1)*getnum:getnum]

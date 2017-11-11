@@ -10,11 +10,17 @@ class Article(models.Model):
 		('2','新闻动态'),
 		('3','通知公告'),
 	)
+	student_category=(
+		('1','本科生')
+		('2','研究生')
+		('3','博士生')
+	)
 	id = models.AutoField(primary_key=True)
 	title = models.CharField('标题',max_length=255, blank=True)
 	content = models.TextField('文章内容')
 	timestamp = models.CharField('时间',max_length=20, blank=True)
 	category=models.CharField('文章分类',max_length=1,choices=Category_Choice)
+	student_category=models.CharField('学生分类',max_length=1,choices=student_category)
 	class Meta:
 		db_table='article'
 class Picture(models.Model):

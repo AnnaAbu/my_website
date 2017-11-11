@@ -1,31 +1,52 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from .models import Article
+from .models import Article,Picture
 from django.shortcuts import render
 from django.http import JsonResponse
 import string
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
+def queryset_to_dict(mylist,name)
+    thdict = {}
+    count = 0
+    for l in mylist:
+        mydict = {}
+        mydict['id'] = l[0]
+        mydict['category'] = l[1]
+        mydict['title'] = l[2]
+        count += 1
+        dictname = 'dict' + str(name) + str(count)
+        thdict[dictname] = mydict
+    return thdict
 
 
 def homepage(request):
-	mylist = Article.objects.order_by('-id').values_list('id', 'title')[0:6]
-	listdict = {}
-	count = 0
-	for l in mylist:
-		mydict = {}
-		mydict['id'] = l[0]
-		mydict['title'] = l[1]
-		count += 1
-		dictname = 'dict' + str(count)
-		listdict[dictname] = mydict
-    # 之后需要修改为动态
-	listdict['pic_1'] = "http://39.106.45.205:8000/site_media/photos/2017/11/08/picture_1.jpg"
-	listdict['pic_2'] = "http://39.106.45.205:8000/site_media/photos/2017/11/08/picture_2.jpg"
-	listdict['pic_3'] = "http://39.106.45.205:8000/site_media/photos/2017/11/08/picture_3.jpg"
-	listdict['status'] = '0'
-	return JsonResponse(listdict)
+	if request.method == 'GET':
+		return JsonResponse({'status': '1', 'msg': 'invalid type'})
+	elif request.method == 'POST':
+		mylist_xwdt = Article.objects.filter(part='xwdt').order_by('-id').values_list('id', 'category', 'title')[0:6]
+		mylist_tzgg = Article.objects.filter(part='tzgg').order_by('-id').values_list('id', 'category', 'title')[0:6]
+		mylist_pic = Picture.objects.all().order_by('-id')[0:3]
+
+		listdict = {}
+		listdict['xwdt'] = queryset_to_dict(mylist_xwdt, 'xwdt')
+		listdict['tzgg'] = queryset_to_dict(mylist_xwdt, 'tzgg')
+		picdict = {}
+		count = 0
+		for t in mylist_pic:
+			mydict = {}
+			mydict['pic_url'] = 'http://39.106.45.205:8000/site_media/' + str(t.image)
+			mydict['news_url'] = t.url
+			count += 1
+			dictname = 'pic_'  + str(count)
+			picdict[dictname] = mydict
+		listdict['picture'] = picdict
+		#listdict['introduction'] = '一个静态页面，url前端给'
+		#状态码
+		listdict['status'] = '0'
+		return JsonResponse(listdict)
+
 
 
 def getlist(request):

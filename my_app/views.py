@@ -2,6 +2,9 @@
 from __future__ import unicode_literals
 from .models import Article,Picture
 from django.http import JsonResponse
+from django.forms.models import model_to_dict  
+import math
+
 
 
 # Create your views here.
@@ -25,62 +28,45 @@ def homepage(request):
         response= JsonResponse(listdict)
         response["Access-Control-Allow-Origin"]='*'
         return response
-
+def getdata(page,num,category):
+    args_key=('category','id','title','timestamp')
+    if category=="all":
+        query_set=Article.objects.order_by('-id').values_list(*args_key)
+    else: 
+        query_set=Article.objects.filter(category=category).order_by('-id').values_list(*args_key)
+    count=query_set.count()
+    if (count/num < page):
+        page=int(count/num)
+    return queryset_to_dictlist(query_set[page*num:(page+1)*num],args_key)
 
 def getlist(request):
     if request.method == 'GET':
-        print(request.GET)
-        import ipdb;ipdb.set_trace()
-        getpage= request.GET.get('page',1)
-        getcategory=request.GET.get('category')
-        getnum=request.GET.get('num',3)
+        page= request.GET.get('page',1)
+        categories=request.GET.getlist('category[]')
+        num=request.GET.get('num',3)
+
     elif request.method == 'POST':
-        getpage = request.POST.get('page', 1)        
-        getcategory = request.POST.get('category')
-        getnum=request.POST.get('num',3)
-    if getcategory==None:
-        response= JsonResponse({'status': '1', 'msg': 'not found category'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
-    if isinstance(getcategory,list):
-        response= JsonResponse({'status':'1','msg':'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        page = request.POST.get('page', 0)        
+        categories = request.POST.getlist('category[]',['all',])
+        num=request.POST.get('num',3)
+
     try:
-        getpage=int(getpage)
-        getnum=int(getnum)
-        getcategory=eval(getcategory)
-    except ValueError:
-        response= JsonResponse({'status': '1', 'msg': 'page or num is not an Integer'})
+        page=int(page)
+        num=int(num)
+    except Exception:
+        response= JsonResponse({'status': '1', 'msg': 'invalid parameter'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
-    except (SyntaxError,NameError):
-        response= JsonResponse({'status':'1','msg':'invalid category'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
-    mydict={}
-    for l in getcategory:
-        l.strip()
-        if Article.objects.filter(category=l).count()==0:
-            response= JsonResponse({'status':'1','msg':'invalid category'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        backlist=[]
-        if (getpage - 1) * getnum > Article.objects.filter(category=l).count():
-            response= JsonResponse({'status': '1', 'msg': 'invalid page or num'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        elif getpage*getnum<Article.objects.filter(category=l).count():
-            mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[(getpage-1)*getnum:getnum]
-        else:
-            mylist=Article.objects.filter(category=l).order_by('-id').values_list('category','id','title','timestamp')[
-                   (getpage-1)*getnum:Article.objects.filter(category=l).count()-(getpage-1)*getnum]
-        mydict[l]=queryset_to_dictlist(mylist,['category','id','title','timestamp'])
-    mydict['status'] = '0'
-    response= JsonResponse(mydict)
+    data={}
+    #import ipdb;ipdb.set_trace()
+    if "all" in categories:
+        data['all']=getdata(page,num,"all")
+    else:
+        for category in categories:
+            data[category]=getdata(page,num,category)
+    response= JsonResponse({'status':'0','data':data})
     response["Access-Control-Allow-Origin"] = '*'
     return response
-
 
 def detail(request):
     if request.method == 'GET':

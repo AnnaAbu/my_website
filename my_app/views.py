@@ -17,7 +17,6 @@ def queryset_to_dictlist(mylist,attrlist):
         list.append(mydict)
     return  list
 
-
 def homepage(request):
         mylist_pic = Picture.objects.all().order_by('-id')[0:3]
         listdict = {}
@@ -26,6 +25,7 @@ def homepage(request):
         response= JsonResponse(listdict)
         response["Access-Control-Allow-Origin"]='*'
         return response
+
 def getdata(page,num,category):
     args_key=('category','id','title','timestamp')
     if category=="all":
@@ -201,4 +201,12 @@ def login(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
 
+def research(request):
+    mylist_pic = Research.objects.all().order_by('-id')[0:2]
+    listdict = {}
+    listdict['data'] = queryset_to_dictlist(mylist_pic, ['pic_url', 'title','description'])
+    listdict['status'] = '0'
+    response = JsonResponse(listdict)
+    response["Access-Control-Allow-Origin"] = '*'
+    return response
 

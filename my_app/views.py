@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from .models import Article,Picture
+from .models import *
 from django.http import JsonResponse
-from django.forms.models import model_to_dict  
-import math
-
-
+from django.contrib import auth
+import time
 
 # Create your views here.
 def queryset_to_dictlist(mylist,attrlist):
@@ -95,3 +93,112 @@ def detail(request):
     response= JsonResponse(mydict)
     response["Access-Control-Allow-Origin"] = '*'
     return response
+
+def add_article(request):
+    if request.method=='GET':
+        gettitle=request.GET.get('title')
+        getcontent=request.GET.get('content')
+        getcategory=request.GET.get('category')
+    elif request.method=='POST':
+        gettitle = request.POST.get['title']
+        getcontent = request.POST.get['content']
+        getcategory = request.POST.get['category']
+    gettimestamp=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    try:
+        Article.objects.create(title=gettitle,content=getcontent,timestamp=gettimestamp,category=getcategory)
+    except Exception:
+        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    finally:
+        response=JsonResponse({'status':'0','msg':'request complete'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+
+def delete_object(request):
+    if request.method=='GET':
+        getid=request.GET.get('id')
+        getclass=request.GET.get('class')
+    elif request.method=='POST':
+        getid=request.POST.get['id']
+        getclass=request.GET.get['class']
+    if getclass=='Article':
+        try:
+            this_object=Article.objects.get(id=getid)
+            this_object.delete()
+        except Exception:
+            response = JsonResponse({'status': '1', 'msg': 'invalid id'})
+            response["Access-Control-Allow-Origin"] = '*'
+            return response
+    elif getclass=='Picture':
+        try:
+            this_object=Picture.objects.get(id=getid)
+            this_object.delete()
+        except Exception:
+            response=JsonResponse({'status':'1','msg':'invalid id'})
+            response["Access-Control-Allow-Origin"] = '*'
+            return response
+    else:
+        response = JsonResponse({'status': '1', 'msg': 'invalid class'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    response=JsonResponse({'status':'0','msg':'request complete'})
+    response["Access-Control-Allow-Origin"] = '*'
+    return response
+
+def update_article(request):
+    if request.method=='GET':
+        getid=request.GET.get('id')
+        gettitle = request.GET.get('title')
+        getcontent = request.GET.get('content')
+        getcategory = request.GET.get('category')
+    elif request.method == 'POST':
+        getid=request.POST.get['id']
+        gettitle = request.POST.get['title']
+        getcontent = request.POST.get['content']
+        getcategory = request.POST.get['category']
+    gettimestamp=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    try:
+        Article.objects.filter(id=getid).update(title=gettitle,content=getcontent,\
+                                                timestamp=gettimestamp,category=getcategory)
+    except Exception:
+        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    finally:
+        response = JsonResponse({'status': '0', 'msg': 'request complete'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+
+def pic_save(request):
+    if request.method=='GET':
+        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    elif request.method=='POST':
+        new_img = Picture(
+            image=request.FILES.get('img'),
+            name=request.FILES.get('img').name
+        )
+        new_img.save()
+        response=JsonResponse({'status':'0','msg':'request complete'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+
+def login(request):
+    if request.method=='GET':
+        getuser = request.GET.get('user')
+        getpwd = request.GET.get('password')
+    elif request.method == 'POST':
+        getuser = request.POST.get['user']
+        getpwd = request.POST.get['password']
+    if auth.authenticate(username=getuser,password=getpwd) is None:
+        response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    else:
+        response = JsonResponse({'status': '0', 'msg': 'login success'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+
+

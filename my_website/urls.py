@@ -24,6 +24,7 @@ urlpatterns = [
 	url(r'^homepage',views.homepage),
 	url(r'^getlist/$',views.getlist),
 	url(r'^getlist/detail/$',views.detail),
+	url(r'^research/',views.research),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

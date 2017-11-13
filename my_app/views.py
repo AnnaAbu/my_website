@@ -7,18 +7,18 @@ import time
 
 # Create your views here.
 def queryset_to_dictlist(mylist,attrlist):
-    list=[]
+    thelist=[]
     for l in mylist:
         count=0
         mydict = {}
         for k in attrlist:
             mydict[k]=l[count]
             count+=1
-        list.append(mydict)
-    return  list
+        thelist.append(mydict)
+    return  thelist
 
 def homepage(request):
-        mylist_pic = Picture.objects.all().order_by('-id')[0:3]
+        mylist_pic = Picture.objects.all().values_list('image','name').order_by('-id')[0:3]
         listdict = {}
         listdict['picture'] = queryset_to_dictlist(mylist_pic,['pic_url','news_url'])
         listdict['status'] = '0'
@@ -202,7 +202,7 @@ def login(request):
         return response
 
 def research(request):
-    mylist_pic = Research.objects.all().order_by('-id')[0:2]
+    mylist_pic = Research.objects.all().values_list('image','title','description').order_by('-id')[0:2]
     listdict = {}
     listdict['data'] = queryset_to_dictlist(mylist_pic, ['pic_url', 'title','description'])
     listdict['status'] = '0'

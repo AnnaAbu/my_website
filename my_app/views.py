@@ -6,16 +6,18 @@ from django.contrib import auth
 import time
 
 # Create your views here.
-def queryset_to_dictlist(mylist,attrlist):
-    thelist=[]
-    for l in mylist:
-        count=0
-        mydict = {}
-        for k in attrlist:
-            mydict[k]=l[count]
-            count+=1
-        thelist.append(mydict)
-    return  thelist
+def queryset_to_dictlist(query_set,attrlist):
+    if not isinstance(list(query_set), list):
+        raise Exception("bad query_set at line "+sys._getframe().f_lineno+" in "+__file__)
+    dict_list=[]
+    for row in query_set:
+        if len(row) !=len(attrlist):
+            raise Exception("length of query_set row and attrlist not same at line "+sys._getframe().f_lineno+" in "+__file__)
+        temp_dict={}
+        for i in range(len(row)):
+            temp_dict[attrlist[i]]=row[i]
+        dict_list.append(temp_dict)
+    return dict_list
 
 def homepage(request):
         mylist_pic = Picture.objects.all().values_list('image').order_by('-id')[0:3]

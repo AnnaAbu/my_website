@@ -18,9 +18,9 @@ def queryset_to_dictlist(mylist,attrlist):
     return  thelist
 
 def homepage(request):
-        mylist_pic = Picture.objects.all().values_list('image','name').order_by('-id')[0:3]
+        mylist_pic = Picture.objects.all().values_list('image').order_by('-id')[0:3]
         listdict = {}
-        listdict['picture'] = queryset_to_dictlist(mylist_pic,['pic_url','news_url'])
+        listdict['picture'] = queryset_to_dictlist(mylist_pic,['pic_url'])
         listdict['status'] = '0'
         response= JsonResponse(listdict)
         response["Access-Control-Allow-Origin"]='*'

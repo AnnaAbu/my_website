@@ -25,6 +25,9 @@ class Picture(models.Model):
     name = models.CharField('图片名称',max_length=25)
     class Meta:
         db_table='picture'
+    def __str__(self):
+        return str(image)
+
 class Research(models.Model):
     id = models.AutoField(primary_key=True)
     image = models.ImageField(upload_to = "photos")

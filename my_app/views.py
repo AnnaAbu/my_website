@@ -164,10 +164,10 @@ def update_article(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        getid=request.POST.get['id']
+        getid=request.POST.get('id')
         dict=get_attr(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if dict['category'] in choicelist:
+    if dict['category'] not in choicelist:
         response = JsonResponse({'status': '1', 'msg': 'bad category'})
         response["Access-Control-Allow-Origin"] = '*'
         return response

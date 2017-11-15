@@ -4,6 +4,7 @@ from .models import *
 from django.http import JsonResponse
 from django.contrib import auth
 import time
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 def queryset_to_dictlist(mylist,attrlist):
@@ -17,6 +18,12 @@ def queryset_to_dictlist(mylist,attrlist):
         list.append(mydict)
     return  list
 
+def get_attr(request,list):
+    dict={}
+    for l in list:
+        dict[l]=request.POST.get(l,None)
+    return dict
+
 def homepage(request):
         mylist_pic = Picture.objects.all().values_list('id','image').order_by('-id')[0:3]
         listdict = {}
@@ -25,6 +32,7 @@ def homepage(request):
         response= JsonResponse(listdict)
         response["Access-Control-Allow-Origin"]='*'
         return response
+
 def getdata(page,num,category):
     args_key=('category','id','title','timestamp')
     if category=="all":
@@ -70,15 +78,15 @@ def detail(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        getid = request.POST['id']
+        dict=get_attr(request,['id',])
     try:
-        getid=int(getid)
+        dict['id']=int(dict['id'])
     except ValueError:
         response= JsonResponse({'status':'1','msg':'id is not an integer'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     try:
-        article = Article.objects.get(id=getid)
+        article = Article.objects.get(dict)
     except Article.DoesNotExist:
         response= JsonResponse({'status': '1', 'msg': 'id not found'})
         response["Access-Control-Allow-Origin"] = '*'
@@ -93,32 +101,27 @@ def detail(request):
     response["Access-Control-Allow-Origin"] = '*'
     return response
 
+@login_required()
 def add_article(request):
     if request.method=='GET':
         response = JsonResponse({'status': '1', 'msg': 'invalid type'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        gettitle = request.POST.get['title']
-        getcontent = request.POST.get['content']
-        getcategory = request.POST.get['category']
-        gettimestamp=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if request.session['is_login'] == True:
-        try:
-            Article.objects.create(title=gettitle,content=getcontent,timestamp=gettimestamp,category=getcategory)
-        except Exception:
-            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        finally:
-            response=JsonResponse({'status':'0','msg':'request complete'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-    else:
-        response = JsonResponse({'status': '1', 'msg': 'invalid cookie'})
+        dict=get_attr(request,['title','content','category'])
+        dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    try:
+         Article.objects.create(dict)
+    except Exception:
+        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    finally:
+        response=JsonResponse({'status':'0','msg':'request complete'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
 
+@login_required()
 def delete_object(request):
     if request.method=='GET':
         response = JsonResponse({'status': '1', 'msg': 'invalid type'})
@@ -127,35 +130,32 @@ def delete_object(request):
     elif request.method=='POST':
         getid=request.POST.get['id']
         getclass=request.GET.get['class']
-    if request.session['is_login'] == True:
-        if getclass=='Article':
-            try:
-                this_object=Article.objects.get(id=getid)
-                this_object.delete()
-            except Exception:
-                response = JsonResponse({'status': '1', 'msg': 'invalid id'})
-                response["Access-Control-Allow-Origin"] = '*'
-                return response
-        elif getclass=='Picture':
-            try:
-                this_object=Picture.objects.get(id=getid)
-                this_object.delete()
-            except Exception:
-                response=JsonResponse({'status':'1','msg':'invalid id'})
-                response["Access-Control-Allow-Origin"] = '*'
-                return response
-        else:
-            response = JsonResponse({'status': '1', 'msg': 'invalid class'})
+        dict=get_attr(request,['id','class'])
+    if dict['class']=='Article':
+        try:
+            this_object=Article.objects.get(id=dict['id'])
+            this_object.delete()
+        except Exception:
+            response = JsonResponse({'status': '1', 'msg': 'invalid id'})
             response["Access-Control-Allow-Origin"] = '*'
             return response
-        response=JsonResponse({'status':'0','msg':'request complete'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+    elif dict['class']=='Picture':
+        try:
+            this_object=Picture.objects.get(id=dict['id'])
+            this_object.delete()
+        except Exception:
+            response=JsonResponse({'status':'1','msg':'invalid id'})
+            response["Access-Control-Allow-Origin"] = '*'
+            return response
     else:
-        response = JsonResponse({'status': '1', 'msg': 'invalid cookie'})
+        response = JsonResponse({'status': '1', 'msg': 'invalid class'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
+    response=JsonResponse({'status':'0','msg':'request complete'})
+    response["Access-Control-Allow-Origin"] = '*'
+    return response
 
+@login_required()
 def update_article(request):
     if request.method=='GET':
         response = JsonResponse({'status': '1', 'msg': 'invalid type'})
@@ -163,46 +163,35 @@ def update_article(request):
         return response
     elif request.method == 'POST':
         getid=request.POST.get['id']
-        gettitle = request.POST.get['title']
-        getcontent = request.POST.get['content']
-        getcategory = request.POST.get['category']
-        gettimestamp=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if request.session['is_login'] == True:
-        try:
-            Article.objects.filter(id=getid).update(title=gettitle,content=getcontent,\
-                                                    timestamp=gettimestamp,category=getcategory)
-        except Exception:
-            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        finally:
-            response = JsonResponse({'status': '0', 'msg': 'request complete'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-    else:
-        response = JsonResponse({'status': '1', 'msg': 'invalid cookie'})
+        dict=get_attr(request,['title','content','category'])
+        dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    try:
+        Article.objects.filter(id=getid).update(dict)
+    except Exception:
+        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+    finally:
+        response = JsonResponse({'status': '0', 'msg': 'request complete'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
 
+@login_required()
 def pic_save(request):
     if request.method=='GET':
         response = JsonResponse({'status': '1', 'msg': 'invalid type'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        if request.session['is_login']==True:
-            new_img = Picture(
-                image=request.FILES.get('img'),
-                name=request.FILES.get('img').name
-            )
-            new_img.save()
-            response=JsonResponse({'status':'0','msg':'request complete'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        else:
-            response = JsonResponse({'status': '1', 'msg': 'invalid cookie'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
+        new_img = Picture(
+            image=request.FILES.get('img'),
+            name=request.FILES.get('img').name
+        )
+        new_img.save()
+        response=JsonResponse({'status':'0','msg':'request complete'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
+
 
 def login(request):
     if request.method=='GET':
@@ -210,26 +199,16 @@ def login(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        getuser = request.POST.get['user']
-        getpwd = request.POST.get['password']
-    if auth.authenticate(username=getuser,password=getpwd) is None:
+        dict=get_attr(request,['user','password'])
+    if auth.authenticate(dict) is None:
         response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     else:
-        request.session['is_login']=True
         response = JsonResponse({'status': '0', 'msg': 'login success'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
-def logout(request):
-    if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
-    if request.method=='POST':
-        request.session['is_login']=False
-        response = JsonResponse({'status': '0', 'msg': 'login success'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+
+
 
 

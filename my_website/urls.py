@@ -24,7 +24,6 @@ urlpatterns = [
 	url(r'^homepage',views.homepage),
 	url(r'^getlist/$',views.getlist),
 	url(r'^getlist/detail/$',views.detail),
-	url(r'^admin/logout/$',views.logout),
 	url(r'^admin/article/add/$',views.add_article),
 	url(r'^admin/article/$',views.getlist),
 	url(r'^admin/article/detail/$',views.detail),

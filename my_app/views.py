@@ -18,10 +18,10 @@ def queryset_to_dictlist(mylist,attrlist):
         list.append(mydict)
     return  list
 
-def get_attr(request,list):
+def get_attr(POST,list):
     dict={}
     for l in list:
-        dict[l]=request.POST.get(l,None)
+        dict[l]=POST.get(l,None)
     return dict
 
 def homepage(request):
@@ -78,7 +78,7 @@ def detail(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_attr(request,['id',])
+        dict=get_attr(request.POST,['id',])
     try:
         dict['id']=int(dict['id'])
     except ValueError:
@@ -86,7 +86,7 @@ def detail(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     try:
-        article = Article.objects.get(dict)
+        article = Article.objects.get(**dict)
     except Article.DoesNotExist:
         response= JsonResponse({'status': '1', 'msg': 'id not found'})
         response["Access-Control-Allow-Origin"] = '*'
@@ -108,18 +108,17 @@ def add_article(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        dict=get_attr(request,['title','content','category'])
+        dict=get_attr(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     try:
-         Article.objects.create(dict)
+         Article.objects.create(**dict)
     except Exception:
         response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
-    finally:
-        response=JsonResponse({'status':'0','msg':'request complete'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+    response=JsonResponse({'status':'0','msg':'request complete'})
+    response["Access-Control-Allow-Origin"] = '*'
+    return response
 
 @login_required()
 def delete_object(request):
@@ -128,9 +127,7 @@ def delete_object(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        getid=request.POST.get['id']
-        getclass=request.GET.get['class']
-        dict=get_attr(request,['id','class'])
+        dict=get_attr(request.POST,['id','class'])
     if dict['class']=='Article':
         try:
             this_object=Article.objects.get(id=dict['id'])
@@ -163,10 +160,10 @@ def update_article(request):
         return response
     elif request.method == 'POST':
         getid=request.POST.get['id']
-        dict=get_attr(request,['title','content','category'])
+        dict=get_attr(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     try:
-        Article.objects.filter(id=getid).update(dict)
+        Article.objects.filter(id=getid).update(**dict)
     except Exception:
         response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
         response["Access-Control-Allow-Origin"] = '*'
@@ -199,8 +196,8 @@ def login(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_attr(request,['user','password'])
-    if auth.authenticate(dict) is None:
+        dict=get_attr(request.POST,['user','password'])
+    if auth.authenticate(**dict) is None:
         response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
         response["Access-Control-Allow-Origin"] = '*'
         return response

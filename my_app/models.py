@@ -24,5 +24,5 @@ class Picture(models.Model):
 	image = models.ImageField(upload_to = "photos")
 	name = models.CharField('图片名称',max_length=25)
 	class Meta:
-		db_tabl='picture'
+		db_table='picture'
 

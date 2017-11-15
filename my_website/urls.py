@@ -20,10 +20,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    url(r'^admin/', views.login),
 	url(r'^homepage',views.homepage),
-	url(r'^getlist/$',views.getlist),
-	url(r'^getlist/detail/$',views.detail),
+	url(r'^getlist$',views.getlist),
+	url(r'^getlist/detail$',views.detail),
+	url(r'^admin/logout$',views.logout),
+	url(r'^admin/article/add$',views.add_article),
+	url(r'^admin/article$',views.getlist),
+	url(r'^admin/article/detail$',views.detail),
+	url(r'^admin/article/detail/modify$',views.update_article),
+	url(r'^admin/article/detail/delete$',views.delete_object),
+	url(r'^admin/picture$',views.homepage),
+	url(r'^admin/picture/add$',views.pic_save),
+	url(r'^admin/picture/detail/delete$',views.delete_object),
+	url(r'^admin/picture$',views.getpictlist)
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

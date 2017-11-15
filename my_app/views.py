@@ -7,6 +7,7 @@ import time
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+choicelist=['bks','yjs','bss','kydt','yjcg']
 def queryset_to_dictlist(mylist,attrlist):
     list=[]
     for l in mylist:
@@ -53,7 +54,6 @@ def getlist(request):
         page = request.POST.get('page', 0)        
         categories = request.POST.getlist('category[]',['all',])
         num=request.POST.get('num',3)
-
     try:
         page=int(page)
         num=int(num)
@@ -110,15 +110,20 @@ def add_article(request):
     elif request.method=='POST':
         dict=get_attr(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    try:
-         Article.objects.create(**dict)
-    except Exception:
-        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+    if dict['category'] not in choicelist:
+        response = JsonResponse({'status': '1', 'msg': 'bad category'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
-    response=JsonResponse({'status':'0','msg':'request complete'})
-    response["Access-Control-Allow-Origin"] = '*'
-    return response
+    else:
+        try:
+             Article.objects.create(**dict)
+        except Exception:
+            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+            response["Access-Control-Allow-Origin"] = '*'
+            return response
+        response=JsonResponse({'status':'0','msg':'request complete'})
+        response["Access-Control-Allow-Origin"] = '*'
+        return response
 
 @login_required()
 def delete_object(request):
@@ -162,13 +167,17 @@ def update_article(request):
         getid=request.POST.get['id']
         dict=get_attr(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    try:
-        Article.objects.filter(id=getid).update(**dict)
-    except Exception:
-        response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+    if dict['category'] in choicelist:
+        response = JsonResponse({'status': '1', 'msg': 'bad category'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
-    finally:
+    else:
+        try:
+            Article.objects.filter(id=getid).update(**dict)
+        except Exception:
+            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
+            response["Access-Control-Allow-Origin"] = '*'
+            return response
         response = JsonResponse({'status': '0', 'msg': 'request complete'})
         response["Access-Control-Allow-Origin"] = '*'
         return response

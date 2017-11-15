@@ -25,4 +25,3 @@ class Picture(models.Model):
 	name = models.CharField('图片名称',max_length=25)
 	class Meta:
 		db_table='picture'
-

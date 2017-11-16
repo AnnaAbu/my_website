@@ -7,6 +7,14 @@ import time
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+
+
+def get_valid_dict(src_dict,src_list):
+    desc_dict={}
+	for i in src_list:
+	    desc_dict[i]=src_dict.get(i,'null')
+	return desc_dict
+
 def queryset_to_dictlist(query_set,attrlist):
     if not isinstance(list(query_set), list):
         raise Exception("bad query_set at line "+sys._getframe().f_lineno+" in "+__file__)
@@ -73,7 +81,7 @@ def detail(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_attr(request.POST,['id',])
+        dict=get_valid_dict(request.POST,['id',])
     try:
         dict['id']=int(dict['id'])
     except ValueError:
@@ -103,7 +111,7 @@ def add_article(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        dict=get_attr(request.POST,['title','content','category'])
+        dict=get_valid_dict(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if dict['category'] not in choicelist:
         response = JsonResponse({'status': '1', 'msg': 'bad category'})
@@ -127,7 +135,7 @@ def delete_object(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        dict=get_attr(request.POST,['id','class'])
+        dict=get_valid_dict(request.POST,['id','class'])
     if dict['class']=='Article':
         try:
             this_object=Article.objects.get(id=dict['id'])
@@ -160,7 +168,7 @@ def update_article(request):
         return response
     elif request.method == 'POST':
         getid=request.POST.get('id')
-        dict=get_attr(request.POST,['title','content','category'])
+        dict=get_valid_dict(request.POST,['title','content','category'])
         dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if dict['category'] not in choicelist:
         response = JsonResponse({'status': '1', 'msg': 'bad category'})
@@ -200,7 +208,7 @@ def login(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_attr(request.POST,['user','password'])
+        dict=get_valid_dict(request.POST,['user','password'])
     if auth.authenticate(**dict) is None:
         response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
         response["Access-Control-Allow-Origin"] = '*'

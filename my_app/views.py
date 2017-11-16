@@ -5,9 +5,14 @@ from django.http import JsonResponse
 from django.contrib import auth
 import time
 from django.contrib.auth.decorators import login_required
-
+import sys
 # Create your views here.
 
+choicelist=['kydt','yjcg','bks','yjs','bss']
+def return_response(return_dict):
+    response=JsonResponse(**return_dict)
+    response["Access-Control-Allow-Origin"] = '*'
+    return  response
 
 def get_valid_dict(src_dict,src_list):
     desc_dict={}
@@ -33,9 +38,7 @@ def homepage(request):
         listdict = {}
         listdict['data'] = queryset_to_dictlist(mylist_pic,['pic_url'])
         listdict['status'] = '0'
-        response= JsonResponse(listdict)
-        response["Access-Control-Allow-Origin"]='*'
-        return response
+        return return_response(listdict)
 
 def getdata(page,num,category):
     args_key=('category','id','title','timestamp')
@@ -50,9 +53,7 @@ def getdata(page,num,category):
 
 def getlist(request):
     if request.method == 'GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method == 'POST':
         page = request.POST.get('page', 0)        
         categories = request.POST.getlist('category[]',['all',])
@@ -61,9 +62,7 @@ def getlist(request):
         page=int(page)
         num=int(num)
     except Exception:
-        response= JsonResponse({'status': '1', 'msg': 'invalid parameter'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid parameter'})
     data={}
     #import ipdb;ipdb.set_trace()
     if "all" in categories:
@@ -71,69 +70,49 @@ def getlist(request):
     else:
         for category in categories:
             data[category]=getdata(page,num,category)
-    response= JsonResponse({'status':'0','data':data})
-    response["Access-Control-Allow-Origin"] = '*'
-    return response
+    return return_response({'status':'0','data':data})
 
 def detail(request):
     if request.method == 'GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method == 'POST':
         desc_dict=get_valid_dict(request.POST,['id',])
     try:
         desc_dict['id']=int(desc_dict['id'])
     except ValueError:
-        response= JsonResponse({'status':'1','msg':'id is not an integer'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status':'1','msg':'id is not an integer'})
     try:
         article = Article.objects.get(**desc_dict)
     except Article.DoesNotExist:
-        response= JsonResponse({'status': '1', 'msg': 'id not found'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'id not found'})
     mydict = {}
     mydict['id'] = article.id
     mydict['title'] = article.title
     mydict['content'] = article.content
     mydict['timestamp'] = article.timestamp
     mydict['status'] = '0'
-    response= JsonResponse(mydict)
-    response["Access-Control-Allow-Origin"] = '*'
-    return response
+    return return_response(mydict)
 
 @login_required()
 def add_article(request):
     if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method=='POST':
         desc_dict=get_valid_dict(request.POST,['title','content','category'])
         desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if desc_dict['category'] not in choicelist:
-        response = JsonResponse({'status': '1', 'msg': 'bad category'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'bad category'})
     else:
         try:
              Article.objects.create(**desc_dict)
         except Exception:
-            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        response=JsonResponse({'status':'0','msg':'request complete'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+            return return_response({'status': '1', 'msg': 'invalid attribute'})
+        return return_response({'status':'0','msg':'request complete'})
 
 @login_required()
 def delete_object(request):
     if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method=='POST':
         desc_dict=get_valid_dict(request.POST,['id','class'])
     if desc_dict['class']=='Article':
@@ -141,91 +120,63 @@ def delete_object(request):
             this_object=Article.objects.get(id=desc_dict['id'])
             this_object.delete()
         except Exception:
-            response = JsonResponse({'status': '1', 'msg': 'invalid id'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
+            return return_response({'status': '1', 'msg': 'invalid id'})
     elif desc_dict['class']=='Picture':
         try:
             this_object=Picture.objects.get(id=desc_dict['id'])
             this_object.delete()
         except Exception:
-            response=JsonResponse({'status':'1','msg':'invalid id'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
+            return return_response({'status':'1','msg':'invalid id'})
     else:
-        response = JsonResponse({'status': '1', 'msg': 'invalid class'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
-    response=JsonResponse({'status':'0','msg':'request complete'})
-    response["Access-Control-Allow-Origin"] = '*'
-    return response
+        return return_response({'status': '1', 'msg': 'invalid class'})
+    return return_response({'status':'0','msg':'request complete'})
 
 @login_required()
 def update_article(request):
     if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method == 'POST':
         getid=request.POST.get('id')
         desc_dict=get_valid_dict(request.POST,['title','content','category'])
         desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if desc_dict['category'] not in choicelist:
-        response = JsonResponse({'status': '1', 'msg': 'bad category'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'bad category'})
     else:
         try:
             Article.objects.filter(id=getid).update(**desc_dict)
         except Exception:
-            response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
-            response["Access-Control-Allow-Origin"] = '*'
-            return response
-        response = JsonResponse({'status': '0', 'msg': 'request complete'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+            return return_response({'status': '1', 'msg': 'invalid attribute'})
+        return return_response({'status': '0', 'msg': 'request complete'})
 
 @login_required()
 def pic_save(request):
     if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method=='POST':
         new_img = Picture(
             image=request.FILES.get('img'),
             name=request.FILES.get('img').name
         )
         new_img.save()
-        response=JsonResponse({'status':'0','msg':'request complete'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status':'0','msg':'request complete'})
 
 
-def login(request):
+def log_in(request):
     if request.method=='GET':
-        response = JsonResponse({'status': '1', 'msg': 'invalid type'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method == 'POST':
         desc_dict=get_valid_dict(request.POST,['user','password'])
     if auth.authenticate(**desc_dict) is None:
-        response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '1', 'msg': 'bad user or pwd'})
     else:
-        response = JsonResponse({'status': '0', 'msg': 'login success'})
-        response["Access-Control-Allow-Origin"] = '*'
-        return response
+        return return_response({'status': '0', 'msg': 'login success'})
 
 def research(request):
     mylist_pic = Research.objects.all().values_list('image','title','description').order_by('-id')[0:2]
     listdict = {}
     listdict['data'] = queryset_to_dictlist(mylist_pic, ['pic_url', 'title','description'])
     listdict['status'] = '0'
-    response = JsonResponse(listdict)
-    response["Access-Control-Allow-Origin"] = '*'
-    return response
+    return return_response(listdict)
 
 
 

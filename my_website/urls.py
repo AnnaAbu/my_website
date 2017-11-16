@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    url(r'^admin/$', views.login),
+    url(r'^admin/$', views.log_in),
 	url(r'^homepage',views.homepage),
 	url(r'^getlist/$',views.getlist),
 	url(r'^getlist/detail/$',views.detail),

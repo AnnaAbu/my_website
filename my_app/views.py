@@ -94,22 +94,6 @@ def detail(request):
     return return_response(mydict)
 
 @login_required()
-def add_article(request):
-    if request.method=='GET':
-        return return_response({'status': '1', 'msg': 'invalid type'})
-    elif request.method=='POST':
-        desc_dict=get_valid_dict(request.POST,['title','content','category'])
-        desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if desc_dict['category'] not in choicelist:
-        return return_response({'status': '1', 'msg': 'bad category'})
-    else:
-        try:
-             Article.objects.create(**desc_dict)
-        except Exception:
-            return return_response({'status': '1', 'msg': 'invalid attribute'})
-        return return_response({'status':'0','msg':'request complete'})
-
-@login_required()
 def delete_object(request):
     if request.method=='GET':
         return return_response({'status': '1', 'msg': 'invalid type'})
@@ -132,20 +116,25 @@ def delete_object(request):
     return return_response({'status':'0','msg':'request complete'})
 
 @login_required()
-def update_article(request):
+def add_modify_article(request):
     if request.method=='GET':
         return return_response({'status': '1', 'msg': 'invalid type'})
     elif request.method == 'POST':
-        getid=request.POST.get('id')
+        getid=request.POST.get('id',None)
         desc_dict=get_valid_dict(request.POST,['title','content','category'])
         desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if desc_dict['category'] not in choicelist:
-        return return_response({'status': '1', 'msg': 'bad category'})
-    else:
-        try:
-            Article.objects.filter(id=getid).update(**desc_dict)
-        except Exception:
-            return return_response({'status': '1', 'msg': 'invalid attribute'})
+        if desc_dict['category'] not in choicelist:
+            return return_response({'status': '1', 'msg': 'bad category'})
+        if getid==None:
+            try:
+                Article.objects.create(**desc_dict)
+            except Exception:
+                return return_response({'status': '1', 'msg': 'invalid attribute'})
+        else:
+            try:
+                Article.objects.filter(id=getid).update(**desc_dict)
+            except Exception:
+                return return_response({'status': '1', 'msg': 'invalid attribute'})
         return return_response({'status': '0', 'msg': 'request complete'})
 
 @login_required()

@@ -81,15 +81,15 @@ def detail(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_valid_dict(request.POST,['id',])
+        desc_dict=get_valid_dict(request.POST,['id',])
     try:
-        dict['id']=int(dict['id'])
+        desc_dict['id']=int(desc_dict['id'])
     except ValueError:
         response= JsonResponse({'status':'1','msg':'id is not an integer'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     try:
-        article = Article.objects.get(**dict)
+        article = Article.objects.get(**desc_dict)
     except Article.DoesNotExist:
         response= JsonResponse({'status': '1', 'msg': 'id not found'})
         response["Access-Control-Allow-Origin"] = '*'
@@ -111,15 +111,15 @@ def add_article(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        dict=get_valid_dict(request.POST,['title','content','category'])
-        dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if dict['category'] not in choicelist:
+        desc_dict=get_valid_dict(request.POST,['title','content','category'])
+        desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    if desc_dict['category'] not in choicelist:
         response = JsonResponse({'status': '1', 'msg': 'bad category'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     else:
         try:
-             Article.objects.create(**dict)
+             Article.objects.create(**desc_dict)
         except Exception:
             response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
             response["Access-Control-Allow-Origin"] = '*'
@@ -135,18 +135,18 @@ def delete_object(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method=='POST':
-        dict=get_valid_dict(request.POST,['id','class'])
-    if dict['class']=='Article':
+        desc_dict=get_valid_dict(request.POST,['id','class'])
+    if desc_dict['class']=='Article':
         try:
-            this_object=Article.objects.get(id=dict['id'])
+            this_object=Article.objects.get(id=desc_dict['id'])
             this_object.delete()
         except Exception:
             response = JsonResponse({'status': '1', 'msg': 'invalid id'})
             response["Access-Control-Allow-Origin"] = '*'
             return response
-    elif dict['class']=='Picture':
+    elif desc_dict['class']=='Picture':
         try:
-            this_object=Picture.objects.get(id=dict['id'])
+            this_object=Picture.objects.get(id=desc_dict['id'])
             this_object.delete()
         except Exception:
             response=JsonResponse({'status':'1','msg':'invalid id'})
@@ -168,15 +168,15 @@ def update_article(request):
         return response
     elif request.method == 'POST':
         getid=request.POST.get('id')
-        dict=get_valid_dict(request.POST,['title','content','category'])
-        dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-    if dict['category'] not in choicelist:
+        desc_dict=get_valid_dict(request.POST,['title','content','category'])
+        desc_dict['timestamp']=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    if desc_dict['category'] not in choicelist:
         response = JsonResponse({'status': '1', 'msg': 'bad category'})
         response["Access-Control-Allow-Origin"] = '*'
         return response
     else:
         try:
-            Article.objects.filter(id=getid).update(**dict)
+            Article.objects.filter(id=getid).update(**desc_dict)
         except Exception:
             response = JsonResponse({'status': '1', 'msg': 'invalid attribute'})
             response["Access-Control-Allow-Origin"] = '*'
@@ -208,8 +208,8 @@ def login(request):
         response["Access-Control-Allow-Origin"] = '*'
         return response
     elif request.method == 'POST':
-        dict=get_valid_dict(request.POST,['user','password'])
-    if auth.authenticate(**dict) is None:
+        desc_dict=get_valid_dict(request.POST,['user','password'])
+    if auth.authenticate(**desc_dict) is None:
         response = JsonResponse({'status': '1', 'msg': 'bad user or pwd'})
         response["Access-Control-Allow-Origin"] = '*'
         return response

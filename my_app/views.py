@@ -11,9 +11,9 @@ from django.contrib.auth.decorators import login_required
 
 def get_valid_dict(src_dict,src_list):
     desc_dict={}
-	for i in src_list:
-	    desc_dict[i]=src_dict.get(i,'null')
-	return desc_dict
+    for i in src_list:
+        desc_dict[i]=src_dict.get(i,'null')
+    return desc_dict
 
 def queryset_to_dictlist(query_set,attrlist):
     if not isinstance(list(query_set), list):
